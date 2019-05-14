@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+
+        <h1>Employee Info</h1>
+
+        <h2 id="employee"></h2>
+        <img id="loader" src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif">
+
+        <label for="name" class="col-lg-2 control-label">Employee Name</label>
+        <input id="name" type="text">
+
+        <label for="name" class="col-lg-2 control-label">Employee Age</label>
+        <input id="age" type="text">
+
+        <button id="button">Update Employee</button>
+
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+    <script>
+        if(typeof web3 !== 'undefined'){
+            web3 = new Web3(web3.currentProvider);
+        }else{
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+        var EmployeeInfoContract = web3.eth.contract([{"constant":true,"inputs":[],"name":"getEmployee","outputs":[{"name":"","type":"string"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_fname","type":"string"},{"name":"_age","type":"uint256"}],"name":"setEmployee","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":false,"name":"name","type":"string"},{"indexed":false,"name":"age","type":"uint256"}],"name":"Employee","type":"event"}]);
+
+        var EmployeeInfo = EmployeeInfoContract.at('0xfd150272e87e12b428c946a2d0abb34a7eca1eea');
+        console.log(EmployeeInfo);
+
+        var EmployeeEvent = EmployeeInfo.Employee();
+
+        EmployeeEvent.watch(function(error, result){
+            if(!error){
+                $("#loader").hide();
+                $("#employee").html(result.args.name + ' ('+result.args.age  + ' years old)');
+                console.log(result);
+            }
+            else{
+                $("#loader").hide();
+                console.error(error);
+            }
+        });
+
+        /*EmployeeInfo.getEmployee(function(error, result){
+            if(!error)
+                {
+                    $("#employee").html(result[0]+' ('+result[1]+' years old)');
+                    console.log(result);
+                }
+            else
+                console.error(error);
+        });*/
+
+        $("#button").click(function() {
+            $("#loader").show();
+            EmployeeInfo.setEmployee($("#name").val(), $("#age").val());
+        });
+    </script>
+
+</body>
+</html>
